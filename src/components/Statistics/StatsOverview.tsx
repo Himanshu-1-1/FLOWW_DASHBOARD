@@ -3,7 +3,7 @@ import { useDashboard } from '../../contexts/DashboardContext';
 import StatCard from './StatCard';
 import TaskCompletionChart from './TaskCompletionChart';
 import TaskProgressChart from './TaskProgressChart';
-import CompletionProgress from './CompletionProgress';
+import OverallProgress from './OverallProgress';
 import { CheckCircle, Clock, ListChecks, Percent } from 'lucide-react';
 
 const StatsOverview: React.FC = () => {
@@ -49,7 +49,7 @@ const StatsOverview: React.FC = () => {
         <TaskProgressChart tasks={tasks} />
       </div>
 
-      <CompletionProgress percentage={statistics.completionRate} />
+      <OverallProgress />
     </div>
   );
 };

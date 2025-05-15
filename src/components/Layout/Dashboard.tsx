@@ -7,7 +7,7 @@ import StatCard from '../Statistics/StatCard';
 import Spinner from '../UI/Spinner';
 import TaskCompletionChart from '../Statistics/TaskCompletionChart';
 import TaskProgressChart from '../Statistics/TaskProgressChart';
-import CompletionProgress from '../Statistics/CompletionProgress';
+import OverallProgress from '../Statistics/OverallProgress';
 import { CheckCircle, Clock, ListChecks, Percent } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
@@ -75,7 +75,7 @@ const Dashboard: React.FC = () => {
             {/* Overall Progress Section */}
             <section>
               <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100 transition-colors">Overall Progress</h2>
-              <CompletionProgress percentage={statistics.completionRate} />
+              <OverallProgress />
             </section>
 
             {/* Task Completion Status & Progress Over Time */}
