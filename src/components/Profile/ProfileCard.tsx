@@ -3,6 +3,7 @@ import { User } from '../../types';
 import Card from '../UI/Card';
 import { Edit, Save, X } from 'lucide-react';
 import { useDashboard } from '../../contexts/DashboardContext';
+import { useToast } from '../../contexts/ToastContext';
 import ProfilePicture from './ProfilePicture';
 
 interface ProfileCardProps {
@@ -11,6 +12,7 @@ interface ProfileCardProps {
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ user }) => {
   const { isEditing, setIsEditing, updateUser, loading } = useDashboard();
+  const { showToast } = useToast();
   const [formData, setFormData] = React.useState({
     name: user.name,
     email: user.email
@@ -24,9 +26,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user }) => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateUser(formData);
+    try {
+      await updateUser(formData);
+      showToast('Profile updated successfully', 'success');
+    } catch (error) {
+      showToast('Failed to update profile', 'error');
+    }
   };
 
   const handleCancel = () => {
@@ -38,8 +45,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user }) => {
   };
 
   const handleProfilePictureUpdate = async (file: File) => {
-    console.log('Updating profile picture:', file);
-    await updateUser({ profilePicture: URL.createObjectURL(file) });
+    try {
+      await updateUser({ profilePicture: URL.createObjectURL(file) });
+      showToast('Profile picture updated successfully', 'success');
+    } catch (error) {
+      showToast('Failed to update profile picture', 'error');
+    }
   };
 
   return (
@@ -123,7 +134,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user }) => {
               className="mt-2 inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={16} className="mr-2" />
-              Save Changes
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
           </form>
         )}

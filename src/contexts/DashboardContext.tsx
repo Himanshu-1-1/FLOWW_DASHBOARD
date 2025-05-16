@@ -16,11 +16,15 @@ interface DashboardContextType {
 }
 
 const TASKS_STORAGE_KEY = 'dashboard_tasks';
+const USER_STORAGE_KEY = 'dashboard_user';
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
 export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [tasks, setTasks] = useState<Task[]>(() => {
     const savedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
     return savedTasks ? JSON.parse(savedTasks) : [];
@@ -33,6 +37,13 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
     localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
   }, [tasks]);
 
+  // Save user to localStorage whenever it changes
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    }
+  }, [user]);
+
   // Calculate statistics based on tasks
   const statistics: Statistics = {
     completedTasks: tasks.filter(task => task.completed).length,
@@ -43,16 +54,20 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
       : 0
   };
 
-  // Fetch initial user data only
+  // Fetch initial user data only if not in localStorage
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        setLoading(true);
-        const userData = await api.getUser();
-        setUser(userData);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      } finally {
+      if (!user) {
+        try {
+          setLoading(true);
+          const userData = await api.getUser();
+          setUser(userData);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
         setLoading(false);
       }
     };
@@ -73,11 +88,6 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
 
       setTasks(tasks.map(task => 
         task.id === taskId ? updatedTask : task
-      ));
-
-      // Update localStorage
-      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(
-        tasks.map(task => task.id === taskId ? updatedTask : task)
       ));
 
     } catch (error) {
@@ -104,7 +114,7 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
     try {
       setLoading(true);
       const newTask: Task = {
-        id: Date.now().toString(), // Generate unique ID
+        id: Date.now().toString(),
         title,
         completed: false,
         createdAt: new Date().toISOString()
@@ -119,12 +129,7 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const deleteTask = async (taskId: string) => {
     try {
-      // Remove task from state
       setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-      
-      // Update localStorage
-      const updatedTasks = tasks.filter(task => task.id !== taskId);
-      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(updatedTasks));
     } catch (error) {
       console.error('Error deleting task:', error);
     }
